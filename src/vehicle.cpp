@@ -162,7 +162,7 @@ void truncate_route_by_time(Route &route, uint64_t time_ms) {
 }
 
 void advance_vehicle(Vehicle &vehicle,
-                     std::vector<Trip> &trips,
+                     std::vector<Order> &orders,
                      uint64_t system_time_ms,
                      uint64_t time_ms,
                      bool update_vehicle_stats) {
@@ -171,8 +171,8 @@ void advance_vehicle(Vehicle &vehicle,
         return;
     }
 
-    for (auto i = 0; i < vehicle.waypoints.size(); i++) {
-        auto &wp = vehicle.waypoints[i];
+    for (auto i = 0; i < vehicle.schedule.size(); i++) {
+        auto &wp = vehicle.schedule[i];
 
         // If we can finish this waypoint within the time.
         if (wp.route.duration_ms <= time_ms) {
@@ -190,25 +190,25 @@ void advance_vehicle(Vehicle &vehicle,
                 assert(vehicle.load < vehicle.capacity &&
                        "Vehicle's load should never exceed its capacity!");
 
-                trips[wp.trip_id].pickup_time_ms = system_time_ms;
-                trips[wp.trip_id].status = TripStatus::PICKED_UP;
+                orders[wp.order_id].pickup_time_ms = system_time_ms;
+                orders[wp.order_id].status = OrderStatus::PICKED_UP;
                 vehicle.load++;
 
-                fmt::print("[DEBUG] T = {}s: Vehicle #{} picked up Trip #{}\n",
+                fmt::print("[DEBUG] T = {}s: Vehicle #{} picked up Order #{}\n",
                            system_time_ms / 1000.0,
                            vehicle.id,
-                           wp.trip_id);
+                           wp.order_id);
             } else if (wp.op == WaypointOp::DROPOFF) {
                 assert(vehicle.load > 0 && "Vehicle's load should not be zero before a dropoff!");
 
-                trips[wp.trip_id].dropoff_time_ms = system_time_ms;
-                trips[wp.trip_id].status = TripStatus::DROPPED_OFF;
+                orders[wp.order_id].dropoff_time_ms = system_time_ms;
+                orders[wp.order_id].status = OrderStatus::DROPPED_OFF;
                 vehicle.load--;
 
-                fmt::print("[DEBUG] T = {}s: Vehicle #{} droped off Trip #{}\n",
+                fmt::print("[DEBUG] T = {}s: Vehicle #{} droped off Order #{}\n",
                            system_time_ms / 1000.0,
                            vehicle.id,
-                           wp.trip_id);
+                           wp.order_id);
             }
 
             continue;
@@ -226,12 +226,12 @@ void advance_vehicle(Vehicle &vehicle,
             vehicle.loaded_dist_traveled_mm += dist_traveled_mm * vehicle.load;
         }
 
-        vehicle.waypoints.erase(vehicle.waypoints.begin(), vehicle.waypoints.begin() + i);
+        vehicle.schedule.erase(vehicle.schedule.begin(), vehicle.schedule.begin() + i);
 
         return;
     }
 
-    // We've finished all waypoints.
-    vehicle.waypoints.clear();
+    // We've finished the whole schedule.
+    vehicle.schedule.clear();
     return;
 }

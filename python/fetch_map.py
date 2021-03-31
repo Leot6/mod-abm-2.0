@@ -95,7 +95,7 @@ def main():
               "- Usage: python3 <prog name> <arg1> <arg2>. \n"
               "  <arg1> is the path to the platform config file. \n"
               "  <arg2> is the path to the output map image. \n"
-              "- Example: python3 {} \"./config/platform_demo.yml\" \"./media/hongkong.png\"\n".format(sys.argv[0]))
+              "- Example: python3 {} \"./config/platform_demo.yml\" \"./media/mahattan.png\"\n".format(sys.argv[0]))
 
         sys.exit(1)
 

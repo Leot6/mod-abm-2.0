@@ -4,35 +4,41 @@
 #pragma once
 
 #include "types.hpp"
+#include "utility.hpp"
 
 #include <cstdint>
 #include <memory>
 #include <string>
 
-/// \brief Stateful functor that generates trips based on demand data.
+/// \brief Stateful functor that generates orders based on demand data.
 class DemandGenerator {
   public:
     /// \brief Constructor.
-    explicit DemandGenerator(std::string _path_to_demand_data);
+    explicit DemandGenerator(std::string _path_to_taxi_data, std::string _simulation_start_time,
+                             double _request_density);
 
     /// \brief Main functor that generates the requests til the target system time.
     std::vector<Request> operator()(uint64_t target_system_time_ms);
 
+    const std::vector<Request> &GetAllRequests() const;
+
   private:
-    /// \brief Generate a request following the Poisson process.
-    /// \see the definition of OdWithProb for detailed explaination.
-    Request generate_request(uint64_t last_request_time_ms);
-
-    /// \brief The last request the system has generated.
-    Request last_request_ = {};
-
     /// \brief The system time starting from 0.
     uint64_t system_time_ms_ = 0;
 
-    /// \brief The demand ODs and their accumulated probabilities.
-    /// \see the definition of OdWithProb for detailed explaination.
-    std::vector<OdWithProb> ods_ = {};
+    /// \brief The real taxi trip data loaded from a csv file.
+    std::vector<Request> all_requests_ = {};
 
-    /// \brief The total trip itensity represented by average number of trips per hour.
-    double trips_per_hour_ = 0.0;
+    /// \brief The init request start time, determined by the simulation time.
+    uint64_t init_request_time_ms_ = 0;
+
+    /// \brief The init request index when the simulation starts.
+    size_t init_request_idx_ = 0;
+
+    /// \brief The number of requests that have been generated.
+    size_t current_request_count_ = 0;
+
+    /// \brief // the percentage of taxi data considered.
+    float request_density_ = 1.0;
+
 };

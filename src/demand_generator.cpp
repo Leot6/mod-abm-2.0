@@ -3,41 +3,27 @@
 
 #include "demand_generator.hpp"
 
+#include <string>
 #include <cstdint>
 #include <fmt/format.h>
 
 #include <algorithm>
 
-DemandGenerator::DemandGenerator(std::string _path_to_demand_data) {
-    auto demand_yaml = YAML::LoadFile(_path_to_demand_data);
+DemandGenerator::DemandGenerator(std::string _path_to_taxi_data, std::string _simulation_start_time,
+                                 double _request_density) {
+    auto s_time = GetTimeStamp();
+    all_requests_ = ReadObjectVectorFromBinary<Request>(_path_to_taxi_data);
+    fmt::print("[INFO] ({}s) Loaded taxi data from {}, having {} requests.\n",
+               double (GetTimeStamp() - s_time)/1000, _path_to_taxi_data,all_requests_.size());
 
-    // Compute the total number of trips per hour.
-    for (const auto &od_yaml : demand_yaml) {
-        trips_per_hour_ += od_yaml["trips_per_hour"].as<double>();
+    s_time = GetTimeStamp();
+    init_request_time_ms_ = ComputeTheAccumulatedSecondsFrom0Clock(_simulation_start_time) * 1000;
+    while (all_requests_[init_request_idx_].request_time_ms < init_request_time_ms_){
+        init_request_idx_ += 1;
     }
-
-    // Generate the ODs with probabilities.
-    auto accumucated_trips = 0.0;
-
-    for (const auto &od_yaml : demand_yaml) {
-        OdWithProb od;
-
-        od.origin.lon = od_yaml["origin"]["lon"].as<double>();
-        od.origin.lat = od_yaml["origin"]["lat"].as<double>();
-        od.destination.lon = od_yaml["destination"]["lon"].as<double>();
-        od.destination.lat = od_yaml["destination"]["lat"].as<double>();
-
-        accumucated_trips += od_yaml["trips_per_hour"].as<double>();
-        od.accumulated_prob = accumucated_trips / trips_per_hour_;
-
-        ods_.emplace_back(std::move(od));
-    }
-
-    fmt::print("[INFO] Loaded demand config from {}. Generated demand matrix with {} OD pairs and "
-               "{} total trips per hour.\n",
-               _path_to_demand_data,
-               ods_.size(),
-               trips_per_hour_);
+    request_density_ = _request_density;
+    fmt::print("[INFO] ({}s) Simulation starts at {}, init request idx {}.\n",
+               double (GetTimeStamp() - s_time)/1000, _simulation_start_time, init_request_idx_);
 }
 
 std::vector<Request> DemandGenerator::operator()(uint64_t target_system_time_ms) {
@@ -47,44 +33,24 @@ std::vector<Request> DemandGenerator::operator()(uint64_t target_system_time_ms)
 
     // System time moves to the target.
     system_time_ms_ = target_system_time_ms;
-
     std::vector<Request> requests = {};
 
-    // Get the last request time. 0 indicates the initial state with no request generated yet.
-    if (last_request_.request_time_ms > 0) {
-        if (last_request_.request_time_ms > system_time_ms_) {
-            return requests;
-        }
-
-        requests.emplace_back(last_request_);
-    }
-
-    // Generate new requests until we go beyond the target time.
-    while (true) {
-        last_request_ = generate_request(last_request_.request_time_ms);
-
-        if (last_request_.request_time_ms > system_time_ms_) {
+    int32_t new_request_idx = init_request_idx_ + (int32_t)(current_request_count_ / request_density_);
+    while (all_requests_[new_request_idx].request_time_ms < system_time_ms_ + init_request_time_ms_){
+        Request new_request = all_requests_[new_request_idx];
+        fmt::print("[INFO] Generated request index {}({}s): origin({}), dest({}).\n",
+                   new_request_idx - init_request_idx_,new_request.request_time_date,
+                   new_request.origin.node_id, new_request.destination.node_id);
+        if (new_request.origin.node_id == 0){
             break;
         }
-
-        requests.emplace_back(last_request_);
+        current_request_count_ += 1;
+        new_request_idx = init_request_idx_ + (int32_t)(current_request_count_ / request_density_);
+        requests.emplace_back(new_request);
     }
-
     return requests;
 }
 
-Request DemandGenerator::generate_request(uint64_t last_request_time_ms) {
-    // Generate a random number in [0, 1)
-    auto rn = rand() / static_cast<double>(RAND_MAX);
-
-    // Based on the accumulated probabilities of each OD, find the corresponding trip.
-    auto od_it = std::lower_bound(ods_.begin(), ods_.end(), rn, [](OdWithProb od, double val) {
-        return od.accumulated_prob < val;
-    });
-
-    // Calculate thg interarrival time that follows the Poisson process
-    uint64_t interval_ms =
-        -log(1 - rand() / static_cast<double>(RAND_MAX)) / trips_per_hour_ * 3600000;
-
-    return {od_it->origin, od_it->destination, last_request_time_ms + interval_ms};
+const std::vector<Request> &DemandGenerator::GetAllRequests() const {
+    return all_requests_;
 }

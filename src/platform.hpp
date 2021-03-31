@@ -5,6 +5,7 @@
 
 #include "config.hpp"
 #include "types.hpp"
+#include "utility.hpp"
 #include "vehicle.hpp"
 
 #include <chrono>
@@ -38,11 +39,11 @@ template <typename RouterFunc, typename DemandGeneratorFunc> class Platform {
     /// \brief Advance all vehicles for the given time and move forward the system time.
     void advance_vehicles(uint64_t time_ms);
 
-    /// \brief Generate trips at the end of each cycle.
-    std::vector<size_t> generate_trips();
+    /// \brief Generate orders at the end of each cycle.
+    std::vector<size_t> generate_orders();
 
-    /// \brief Dispatch vehicles to serve pending trips.
-    void dispatch(const std::vector<size_t> &pending_trip_ids);
+    /// \brief Dispatch vehicles to serve pending orders.
+    void dispatch(const std::vector<size_t> &pending_order_ids);
 
     /// \brief Write the data of the current simulation state to datalog.
     void write_to_datalog();
@@ -56,7 +57,7 @@ template <typename RouterFunc, typename DemandGeneratorFunc> class Platform {
     /// \brief The router functor which finds the shortest route for an O/D pair on request.
     RouterFunc router_func_;
 
-    /// \brief The demand generator functor which generates trip requests in each cycle.
+    /// \brief The demand generator functor which generates order requests in each cycle.
     DemandGeneratorFunc demand_generator_func_;
 
     /// \brief The system time in milliseconds starting from 0.
@@ -77,8 +78,8 @@ template <typename RouterFunc, typename DemandGeneratorFunc> class Platform {
     /// \brief The time when the simulation is terminated in milliseconds.
     uint64_t system_shutdown_time_ms_ = 0;
 
-    /// \brief The vector of trips created during the entire simulation process.
-    std::vector<Trip> trips_ = {};
+    /// \brief The vector of orders created during the entire simulation process.
+    std::vector<Order> orders_ = {};
 
     /// \brief The vector of vehicles.
     std::vector<Vehicle> vehicles_ = {};

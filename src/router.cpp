@@ -9,12 +9,15 @@
 
 #include <fmt/format.h>
 
-Router::Router(std::string _path_to_osrm_data) {
+Router::Router(DataFilePath _date_file_path_config) {
+
+    auto &path_to_osrm_data = _date_file_path_config.path_to_osrm;
+
     // Set up the OSRM backend routing engine.
     osrm::EngineConfig config;
 
     // Path to the base osrm map data.
-    config.storage_config = {std::move(_path_to_osrm_data)};
+    config.storage_config = {std::move(path_to_osrm_data)};
 
     // No shared memory.
     config.use_shared_memory = false;
@@ -27,7 +30,7 @@ Router::Router(std::string _path_to_osrm_data) {
     osrm_ptr_ = std::make_unique<osrm::OSRM>(config);
 
     fmt::print("[INFO] Initiated the OSRM routing engine using map data from {}.\n",
-               _path_to_osrm_data);
+               path_to_osrm_data);
 }
 
 RoutingResponse Router::operator()(const Pos &origin, const Pos &destination, RoutingType type) {

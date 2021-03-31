@@ -7,6 +7,8 @@
 #include "router.hpp"
 #include "types.hpp"
 
+
+#include <iostream>
 #include <cstddef>
 #include <cstdlib>
 #include <fmt/format.h>
@@ -14,39 +16,31 @@
 
 int main(int argc, const char *argv[]) {
     // Check the input arugment list.
-    if (argc < 4 || argc > 5) {
+    std::string path_to_config_file;
+    if (argc == 1){
+        path_to_config_file = "./config/platform_demo.yml";
+    } else if (argc == 2){
+        path_to_config_file = argv[1];
+    } else {
         fmt::print(stderr,
-                   "[ERROR] We need 3 or 4 arguments aside from the program name for correct "
-                   "execution! \n"
-                   "- Usage: <prog name> <arg1> <arg2> <arg3> <arg4>. \n"
+                   "[ERROR] \n"
+                   "- Usage: <prog name> <arg1>. \n"
                    "  <arg1> is the path to the platform config file. \n"
-                   "  <arg2> is the path to the orsm map data. \n"
-                   "  <arg3> is the path to the demand config file. \n"
-                   "  <arg4> is the seed (unsigned int) to the random number generator. If not "
-                   "provided, rand() "
-                   "will use the current time as seed.\n"
-                   "- Example: {} \"./config/platform_demo.yml\" \"../osrm/map/hongkong.osrm\" "
-                   "\"./config/demand_demo.yml\" 1\n",
-                   argv[0]);
+                   "- Example: {} \"./config/platform_demo.yml\"  \n",argv[0]);
         return -1;
     }
-
-    // Seed the random number generator.
-    if (argc == 5) {
-        srand(std::stoi(argv[4]));
-    } else {
-        srand(time(0));
-    }
+    CheckFileExistence(path_to_config_file);
+    auto platform_config = load_platform_config(path_to_config_file);
 
     // Initiate the router with the osrm data.
-    Router router{argv[2]};
+    Router router{platform_config.data_file_path};
 
     // Create the demand generator based on the input demand file.
-    DemandGenerator demand_generator{argv[3]};
+    DemandGenerator demand_generator{platform_config.data_file_path.path_to_taxi_data,
+                                     platform_config.simulation_config.simulation_start_time,
+                                     platform_config.mod_system_config.request_config.request_density};
 
     // Create the simulation platform with the config loaded from file.
-    auto platform_config = load_platform_config(argv[1]);
-
     Platform<decltype(router), decltype(demand_generator)> platform{
         std::move(platform_config), std::move(router), std::move(demand_generator)};
 

@@ -5,6 +5,13 @@
 
 #include "types.hpp"
 
+/// \brief Config that describes the data file path.
+struct DataFilePath {
+    std::string path_to_osrm = "";
+    std::string path_to_vehicle_station = "";
+    std::string path_to_taxi_data = "";
+};
+
 /// \brief Config that describes the simulated area.
 struct AreaConfig {
     float lon_min = 0.0; // max longitude accepted
@@ -23,6 +30,7 @@ struct FleetConfig {
 
 /// \brief Config that describes the requests.
 struct RequestConfig {
+    double request_density = 1.0; // the percentage of taxi data considered
     double max_pickup_wait_time_s = 600; // the max wait time allowed between a request is generated
                                          // and the traveler is picked up
 };
@@ -35,7 +43,8 @@ struct MoDSystemConfig {
 
 /// \brief Config that describes the simulation parameters.
 struct SimulationConfig {
-    double cycle_s = 600; // the cycle every x second the platform dispatches the requests in batch
+    std::string simulation_start_time = ""; // the time of the day that simulation starts
+    double cycle_s = 60; // the cycle every x second the platform dispatches the requests in batch
     double simulation_duration_s =
         600; // the main period during which the simulated data is used for analysis
     double warmup_duration_s = 1200;   // the period before the main sim to build up states
@@ -64,6 +73,7 @@ struct OutputConfig {
 
 /// \brief The set of config parameters for the simulation platform.
 struct PlatformConfig {
+    DataFilePath data_file_path;
     AreaConfig area_config;
     MoDSystemConfig mod_system_config;
     SimulationConfig simulation_config;

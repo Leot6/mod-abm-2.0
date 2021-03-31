@@ -10,26 +10,26 @@
 #include <numeric>
 
 template <typename RouterFunc>
-void assign_trips_through_insertion_heuristics(const std::vector<size_t> &pending_trip_ids,
-                                               std::vector<Trip> &trips,
+void assign_orders_through_insertion_heuristics(const std::vector<size_t> &pending_order_ids,
+                                               std::vector<Order> &orders,
                                                std::vector<Vehicle> &vehicles,
                                                uint64_t system_time_ms,
                                                RouterFunc &router_func) {
-    fmt::print("[DEBUG] Assigning trips to vehicles through insertion heuristics.\n");
+    fmt::print("[DEBUG] Assigning orders to vehicles through insertion heuristics.\n");
 
-    // For each trip, we assign it to the best vehicle.
-    for (auto trip_id : pending_trip_ids) {
-        auto &trip = trips[trip_id];
-        assign_trip_through_insertion_heuristics(
-            trip, trips, vehicles, system_time_ms, router_func);
+    // For each order, we assign it to the best vehicle.
+    for (auto order_id : pending_order_ids) {
+        auto &order = orders[order_id];
+        assign_order_through_insertion_heuristics(
+            order, orders, vehicles, system_time_ms, router_func);
     }
 
     return;
 }
 
 template <typename RouterFunc>
-void assign_trip_through_insertion_heuristics(Trip &trip,
-                                              const std::vector<Trip> &trips,
+void assign_order_through_insertion_heuristics(Order &order,
+                                              const std::vector<Order> &orders,
                                               std::vector<Vehicle> &vehicles,
                                               uint64_t system_time_ms,
                                               RouterFunc &router_func) {
@@ -37,39 +37,39 @@ void assign_trip_through_insertion_heuristics(Trip &trip,
 
     // Iterate through all vehicles and find the one with least additional cost.
     for (const auto &vehicle : vehicles) {
-        auto res_this_vehicle = compute_cost_of_inserting_trip_to_vehicle(
-            trip, trips, vehicle, system_time_ms, router_func);
+        auto res_this_vehicle = compute_cost_of_inserting_order_to_vehicle(
+            order, orders, vehicle, system_time_ms, router_func);
 
         if (res_this_vehicle.success && res_this_vehicle.cost_ms < res.cost_ms) {
             res = std::move(res_this_vehicle);
         }
     }
 
-    // If none of the vehicles can serve the trip, return false.
+    // If none of the vehicles can serve the order, return false.
     if (!res.success) {
-        trip.status = TripStatus::WALKAWAY;
-        fmt::print("[DEBUG] Failed to assign Trip #{}.\n", trip.id);
+        order.status = OrderStatus::WALKAWAY;
+        fmt::print("[DEBUG] Failed to assign Order #{}.\n", order.id);
 
         return;
     }
 
-    // Insert the trip to the best vehicle.
+    // Insert the order to the best vehicle.
     auto &best_vehicle = vehicles[res.vehicle_id];
-    insert_trip_to_vehicle(trip, best_vehicle, res.pickup_index, res.dropoff_index, router_func);
+    insert_order_to_vehicle(order, best_vehicle, res.pickup_index, res.dropoff_index, router_func);
 
-    fmt::print("[DEBUG] Assigned Trip #{} to Vehicle #{}, which has {} waypoints.\n",
-               trip.id,
+    fmt::print("[DEBUG] Assigned Order #{} to Vehicle #{}, the schedule of which consists of {} waypoints.\n",
+               order.id,
                best_vehicle.id,
-               best_vehicle.waypoints.size());
+               best_vehicle.schedule.size());
 
     return;
 }
 
-uint64_t get_cost_of_waypoints(const std::vector<Waypoint> &waypoints) {
+uint64_t get_cost_of_schedule(const std::vector<Waypoint> &schedule) {
     auto cost_ms = 0;
     auto accumulated_time_ms = 0;
 
-    for (const auto &wp : waypoints) {
+    for (const auto &wp : schedule) {
         accumulated_time_ms += wp.route.duration_ms;
 
         if (wp.op == WaypointOp::DROPOFF) {
@@ -80,19 +80,19 @@ uint64_t get_cost_of_waypoints(const std::vector<Waypoint> &waypoints) {
     return cost_ms;
 }
 
-bool validate_waypoints(const std::vector<Waypoint> &waypoints,
-                        const std::vector<Trip> &trips,
+bool validate_schedule(const std::vector<Waypoint> &schedule,
+                        const std::vector<Order> &orders,
                         const Vehicle &vehicle,
                         uint64_t system_time_ms) {
     auto accumulated_time_ms = system_time_ms;
     auto load = vehicle.load;
 
-    for (const auto &wp : waypoints) {
+    for (const auto &wp : schedule) {
         accumulated_time_ms += wp.route.duration_ms;
 
         // The planned pickup time should be no larger than the max allowed pickup time.
         if (wp.op == WaypointOp::PICKUP &&
-            accumulated_time_ms > trips[wp.trip_id].max_pickup_time_ms) {
+            accumulated_time_ms > orders[wp.order_id].max_pickup_time_ms) {
             return false;
         }
 
@@ -113,7 +113,7 @@ bool validate_waypoints(const std::vector<Waypoint> &waypoints,
 
 template <typename RouterFunc>
 std::pair<bool, uint64_t> get_pickup_time(Pos pos,
-                                          const std::vector<Waypoint> &waypoints,
+                                          const std::vector<Waypoint> &schedule,
                                           Pos pickup_pos,
                                           size_t pickup_index,
                                           uint64_t system_time_ms,
@@ -122,8 +122,8 @@ std::pair<bool, uint64_t> get_pickup_time(Pos pos,
 
     auto index = 0;
     while (index < pickup_index) {
-        pickup_time_ms += waypoints[index].route.duration_ms;
-        pos = waypoints[index++].pos;
+        pickup_time_ms += schedule[index].route.duration_ms;
+        pos = schedule[index++].pos;
     }
 
     auto route_response = router_func(pos, pickup_pos, RoutingType::TIME_ONLY);
@@ -136,32 +136,32 @@ std::pair<bool, uint64_t> get_pickup_time(Pos pos,
 }
 
 template <typename RouterFunc>
-InsertionResult compute_cost_of_inserting_trip_to_vehicle(const Trip &trip,
-                                                          const std::vector<Trip> &trips,
+InsertionResult compute_cost_of_inserting_order_to_vehicle(const Order &order,
+                                                          const std::vector<Order> &orders,
                                                           const Vehicle &vehicle,
                                                           uint64_t system_time_ms,
                                                           RouterFunc &router_func) {
     InsertionResult ret;
 
-    // Compute the current cost of serving all existing waypoints.
-    const auto current_cost_ms = get_cost_of_waypoints(vehicle.waypoints);
+    // Compute the current cost of serving the schedule.
+    const auto current_cost_ms = get_cost_of_schedule(vehicle.schedule);
 
-    const auto num_wps = vehicle.waypoints.size();
+    const auto num_wps = vehicle.schedule.size();
 
     // The pickup and dropoff can be inserted into any position of the current waypoint list.
     for (auto pickup_index = 0; pickup_index <= num_wps; pickup_index++) {
-        // If we can not pick up the trip before the max wait time time, stop iterating.
+        // If we can not pick up the order before the max wait time time, stop iterating.
         auto [success_pickup, pickup_time_ms] = get_pickup_time(
-            vehicle.pos, vehicle.waypoints, trip.origin, pickup_index, system_time_ms, router_func);
+            vehicle.pos, vehicle.schedule, order.origin, pickup_index, system_time_ms, router_func);
 
-        if (!success_pickup || pickup_time_ms > trip.max_pickup_time_ms) {
+        if (!success_pickup || pickup_time_ms > order.max_pickup_time_ms) {
             break;
         }
 
         for (auto dropoff_index = pickup_index; dropoff_index <= num_wps; dropoff_index++) {
             auto [success_this_insert, cost_ms_this_insert] =
-                compute_cost_of_inserting_trip_to_vehicle_given_pickup_and_dropoff_indices(
-                    trip, trips, vehicle, pickup_index, dropoff_index, system_time_ms, router_func);
+                compute_cost_of_inserting_order_to_vehicle_given_pickup_and_dropoff_indices(
+                    order, orders, vehicle, pickup_index, dropoff_index, system_time_ms, router_func);
 
             if (success_this_insert && cost_ms_this_insert - current_cost_ms < ret.cost_ms) {
                 ret.success = true;
@@ -178,47 +178,47 @@ InsertionResult compute_cost_of_inserting_trip_to_vehicle(const Trip &trip,
 
 template <typename RouterFunc>
 std::pair<bool, uint64_t>
-compute_cost_of_inserting_trip_to_vehicle_given_pickup_and_dropoff_indices(
-    const Trip &trip,
-    const std::vector<Trip> &trips,
+compute_cost_of_inserting_order_to_vehicle_given_pickup_and_dropoff_indices(
+    const Order &order,
+    const std::vector<Order> &orders,
     const Vehicle &vehicle,
     size_t pickup_index,
     size_t dropoff_index,
     uint64_t system_time_ms,
     RouterFunc &router_func) {
-    auto wps = generate_waypoints(
-        trip, vehicle, pickup_index, dropoff_index, RoutingType::TIME_ONLY, router_func);
+    auto new_schedule = generate_schedule(
+        order, vehicle, pickup_index, dropoff_index, RoutingType::TIME_ONLY, router_func);
 
-    if (wps.empty()) {
+    if (new_schedule.empty()) {
         return {false, 0.0};
     }
 
-    if (!validate_waypoints(wps, trips, vehicle, system_time_ms)) {
+    if (!validate_schedule(new_schedule, orders, vehicle, system_time_ms)) {
         return {false, 0.0};
     }
 
-    return {true, get_cost_of_waypoints(wps)};
+    return {true, get_cost_of_schedule(new_schedule)};
 }
 
 template <typename RouterFunc>
-void insert_trip_to_vehicle(Trip &trip,
+void insert_order_to_vehicle(Order &order,
                             Vehicle &vehicle,
                             size_t pickup_index,
                             size_t dropoff_index,
                             RouterFunc &router_func) {
-    auto wps = generate_waypoints(
-        trip, vehicle, pickup_index, dropoff_index, RoutingType::FULL_ROUTE, router_func);
+    auto new_schedule = generate_schedule(
+        order, vehicle, pickup_index, dropoff_index, RoutingType::FULL_ROUTE, router_func);
 
-    assert(!wps.empty() && "The generated waypoint list should be never empty!");
+    assert(!new_schedule.empty() && "The generated new schedule should be never empty!");
 
-    trip.status = TripStatus::DISPATCHED;
-    vehicle.waypoints = std::move(wps);
+    order.status = OrderStatus::DISPATCHED;
+    vehicle.schedule = std::move(new_schedule);
 
     return;
 }
 
 template <typename RouterFunc>
-std::vector<Waypoint> generate_waypoints(const Trip &trip,
+std::vector<Waypoint> generate_schedule(const Order &order,
                                          const Vehicle &vehicle,
                                          size_t pickup_index,
                                          size_t dropoff_index,
@@ -230,43 +230,43 @@ std::vector<Waypoint> generate_waypoints(const Trip &trip,
     auto index = 0;
     while (true) {
         if (index == pickup_index) {
-            auto route_response = router_func(pos, trip.origin, routing_type);
+            auto route_response = router_func(pos, order.origin, routing_type);
 
             if (route_response.status != RoutingStatus::OK) {
                 return {};
             }
 
-            pos = trip.origin;
+            pos = order.origin;
             ret.emplace_back(
-                Waypoint{pos, WaypointOp::PICKUP, trip.id, std::move(route_response.route)});
+                Waypoint{pos, WaypointOp::PICKUP, order.id, std::move(route_response.route)});
         }
 
         if (index == dropoff_index) {
-            auto route_response = router_func(pos, trip.destination, routing_type);
+            auto route_response = router_func(pos, order.destination, routing_type);
 
             if (route_response.status != RoutingStatus::OK) {
                 return {};
             }
 
-            pos = trip.destination;
+            pos = order.destination;
             ret.emplace_back(
-                Waypoint{pos, WaypointOp::DROPOFF, trip.id, std::move(route_response.route)});
+                Waypoint{pos, WaypointOp::DROPOFF, order.id, std::move(route_response.route)});
         }
 
-        if (index >= vehicle.waypoints.size()) {
+        if (index >= vehicle.schedule.size()) {
             return ret;
         }
 
-        auto route_response = router_func(pos, vehicle.waypoints[index].pos, routing_type);
+        auto route_response = router_func(pos, vehicle.schedule[index].pos, routing_type);
 
         if (route_response.status != RoutingStatus::OK) {
             return {};
         }
 
-        pos = vehicle.waypoints[index].pos;
+        pos = vehicle.schedule[index].pos;
         ret.emplace_back(Waypoint{pos,
-                                  vehicle.waypoints[index].op,
-                                  vehicle.waypoints[index].trip_id,
+                                  vehicle.schedule[index].op,
+                                  vehicle.schedule[index].order_id,
                                   std::move(route_response.route)});
 
         index++;
