@@ -101,7 +101,7 @@ std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv) {
     return std::move(all_nodes);
 }
 
-std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(std::string path_to_csv) {
+std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string path_to_csv) {
     CheckFileExistence(path_to_csv);
     auto s_time = GetTimeStamp();
     std::vector<std::vector<size_t>> shortest_path_table = {};
@@ -122,7 +122,7 @@ std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(std::string path_
 //        }
         shortest_path_table.emplace_back(shortest_path_row);
     }
-
+    return shortest_path_table;
 }
 
 

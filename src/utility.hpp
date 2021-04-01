@@ -38,7 +38,7 @@ std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv);
 std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv);
 
 ///// \brief A function loading the precomputed minimum mean travel time path of each node pair from a csv file.
-std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(std::string path_to_csv);
+std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string path_to_csv);
 //std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(
 //        std::string path_to_nodes_csv, std::string path_to_path_table_csv);
 

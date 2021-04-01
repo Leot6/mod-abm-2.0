@@ -8,7 +8,7 @@
 
 bool compare_request(Request req1, Request req2) {
     return (req1.origin_node_id == req2.origin_node_id) && (req1.destination_node_id == req2.destination_node_id)
-    && (req1.request_time_ms == req2.request_time_ms);
+    && (req1.request_time_ms == req2.request_time_ms) && (strcmp(req1.request_time_date, req2.request_time_date) == 0);
 }
 
 void PreprocessRequestDate(std::string path_to_data_file) {
@@ -22,8 +22,7 @@ void PreprocessRequestDate(std::string path_to_data_file) {
     auto request_data_from_bin = ReadObjectVectorFromBinary<Request>(path_to_bin);
     auto duration = static_cast<double>(GetTimeStamp() - s_time) / 1000.0;
     if(std::equal(request_data.begin(), request_data.end(), request_data_from_bin.begin(), compare_request)){
-        fmt::print("[DEBUG] ({}s) Sucessfully read data ({} request ) from the binary file!\n",
-                   duration, request_data_from_bin.capacity());
+        fmt::print("[DEBUG] Sucessfully read data from the binary file!\n");
     }
 }
 
@@ -48,9 +47,9 @@ void PreprocessNodeDate(std::string path_to_data_file) {
 
 int main(int argc, const char *argv[]) {
 
-//    PreprocessRequestDate("../datalog/taxi-data/manhattan-taxi-20160525");
-    PreprocessNodeDate("../datalog/map-data/stations-101");
-    PreprocessNodeDate("../datalog/map-data/nodes");
+    PreprocessRequestDate("../datalog/taxi-data/manhattan-taxi-20160525");
+//    PreprocessNodeDate("../datalog/map-data/stations-101");
+//    PreprocessNodeDate("../datalog/map-data/nodes");
 
 //    std::string a = "test";
 //    fmt::print("a is {}\n", a);
