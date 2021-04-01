@@ -34,7 +34,7 @@ std::vector<Request> DemandGenerator::operator()(uint64_t target_system_time_ms)
     system_time_ms_ = target_system_time_ms;
     std::vector<Request> requests = {};
 
-    int32_t new_request_idx = init_request_idx_ + (int32_t)(current_request_count_ / request_density_);
+    size_t new_request_idx = init_request_idx_ + (size_t)(current_request_count_ / request_density_);
     while (all_requests_[new_request_idx].request_time_ms < system_time_ms_ + init_request_time_ms_){
         Request new_request = all_requests_[new_request_idx];
         fmt::print("[INFO] Generated request index {} ({}): origin({}), dest({}).\n",
@@ -45,7 +45,7 @@ std::vector<Request> DemandGenerator::operator()(uint64_t target_system_time_ms)
         }
         current_request_count_ += 1;
         new_request_idx = init_request_idx_ + (int32_t)(current_request_count_ / request_density_);
-        requests.emplace_back(new_request);
+        requests.push_back(new_request);
     }
     return requests;
 }

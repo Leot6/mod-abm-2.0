@@ -41,7 +41,7 @@ std::time_t GetTimeStamp() {
     return timestamp;
 }
 
-void CheckFileExistence(std::string& path_to_file) {
+void CheckFileExistence(const std::string& path_to_file) {
     struct stat buffer;
     if (stat(path_to_file.c_str(), &buffer) != 0){
         fmt::print("[ERROR] File \"{}\" does not exist! \n", path_to_file);
@@ -69,7 +69,7 @@ std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv) {
         request.origin_node_id = std::stoi(data_line[2]);
         request.destination_node_id = std::stoi(data_line[5]);
 
-        all_requests.emplace_back(request);
+        all_requests.push_back(request);
     }
     fmt::print("[DEBUG] ({}s) Load request data from {}, with {} requests.\n",
                double (GetTimeStamp() - s_time)/1000, path_to_csv, all_requests.size());
@@ -92,9 +92,9 @@ std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv) {
         }
         Pos node;
         node.node_id = std::stoi(data_line[0]);
-        node.lon = std::stod(data_line[1]);
-        node.lat = std::stod(data_line[2]);
-        all_nodes.emplace_back(node);
+        node.lon = std::stof(data_line[1]);
+        node.lat = std::stof(data_line[2]);
+        all_nodes.push_back(node);
     }
     fmt::print("[DEBUG] ({}s) Loaded node data from {}, with {} nodes.\n",
                double (GetTimeStamp() - s_time)/1000, path_to_csv, all_nodes.size());
@@ -116,46 +116,47 @@ std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string pa
             data_line.push_back(info);
         }
         std::vector<size_t> shortest_path_row = {};
-//        for (auto i = 0; i < data_line.size(); i++) {
-//            shortest_path_row.emplace_back(data_line[i]);
-//
-//        }
-        shortest_path_table.emplace_back(shortest_path_row);
+        for (auto i = 1; i < data_line.size(); i++) {
+            shortest_path_row.push_back(std::stoi(data_line[i]));
+        }
+        shortest_path_table.push_back(shortest_path_row);
+        if (shortest_path_table[0].size() != shortest_path_table.back().size()) {
+            fmt::print("[ERROR]!The size is not right.");
+            exit(0);
+        }
     }
+    fmt::print("[DEBUG] ({}s) Loaded shortest path data from {}, with {} * {} node pairs.\n",
+               double (GetTimeStamp() - s_time)/1000, path_to_csv,
+               shortest_path_table.size(), shortest_path_table[0].size());
     return shortest_path_table;
 }
 
-
-//std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(
-//        std::string path_to_nodes_csv, std::string path_to_path_table_csv) {
-//    CheckFileExistence(path_to_nodes_csv);
-//    CheckFileExistence(path_to_path_table_csv);
-//    auto num_of_nodes = LoadNetworkNodesFromCsvFile(path_to_nodes_csv).size();
-//    auto s_time = GetTimeStamp();
-//    std::vector<std::vector<int> > shortest_path_table(num_of_nodes, std::vector<int>(num_of_nodes, 0));
-//
-//}
-//std::vector<Pos> LoadTravelDistanceTableFromCsvFile(std::string path_to_csv){
-//    CheckFileExistence(path_to_csv);
-//    auto s_time = GetTimeStamp();
-//    std::vector<Pos> all_nodes = {};
-//    std::ifstream data_csv(path_to_csv); //load the station data file
-//    std::string line;
-//    getline(data_csv,line);  // ignore the first line
-//    while (getline(data_csv,line)){  // read every line
-//        std::istringstream readstr(line); // string every line
-//        std::vector<std::string> data_line;
-//        std::string info;
-//        while (getline(readstr, info, ',')) {
-//            data_line.push_back(info);
-//        }
-//        Pos node;
-//        node.node_id = std::stoi(data_line[0]);
-//        node.lon = std::stod(data_line[1]);
-//        node.lat = std::stod(data_line[2]);
-//        all_nodes.emplace_back(node);
-//    }
-//    fmt::print("[DEBUG] ({}s) Load network node data from {}, with {} stations.\n",
-//               double (GetTimeStamp() - s_time)/1000, path_to_csv, all_nodes.size());
-//    return std::move(all_nodes);
-//}
+std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv) {
+    CheckFileExistence(path_to_csv);
+    auto s_time = GetTimeStamp();
+    std::vector<std::vector<float>> mean_travel_time_table = {};
+    std::ifstream data_csv(path_to_csv); //load the data file
+    std::string line;
+    getline(data_csv,line);  // ignore the first line
+    while (getline(data_csv,line)){  // read every line
+        std::istringstream readstr(line); // string every line
+        std::vector<std::string> data_line;
+        std::string info;
+        while (getline(readstr, info, ',')) {
+            data_line.push_back(info);
+        }
+        std::vector<float> mean_travel_time_row = {};
+        for (auto i = 1; i < data_line.size(); i++) {
+            mean_travel_time_row.push_back(std::stof(data_line[i]));
+        }
+        mean_travel_time_table.push_back(mean_travel_time_row);
+        if (mean_travel_time_table[0].size() != mean_travel_time_table.back().size()) {
+            fmt::print("[ERROR]!The size is not right.");
+            exit(0);
+        }
+    }
+    fmt::print("[DEBUG] ({}s) Loaded shortest path data from {}, with {} * {} node pairs.\n",
+               double (GetTimeStamp() - s_time)/1000, path_to_csv,
+               mean_travel_time_table.size(), mean_travel_time_table[0].size());
+    return mean_travel_time_table;
+}

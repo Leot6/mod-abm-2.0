@@ -29,7 +29,7 @@ int32_t ComputeTheAccumulatedSecondsFrom0Clock(std::string time_date);
 std::time_t GetTimeStamp();
 
 /// \brief A function to check whether the data file is existing.
-void CheckFileExistence(std::string& path_to_file);
+void CheckFileExistence(const std::string& path_to_file);
 
 /// \brief A function loading the taxi trip data from a csv file.
 std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv);
@@ -37,16 +37,11 @@ std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv);
 /// \brief A function loading the road network node data from a csv file.
 std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv);
 
-///// \brief A function loading the precomputed minimum mean travel time path of each node pair from a csv file.
+/// \brief A function loading the precomputed minimum mean travel time path of each node pair from a csv file.
 std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string path_to_csv);
-//std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(
-//        std::string path_to_nodes_csv, std::string path_to_path_table_csv);
 
-///// \brief A function loading the precomputed mean travel time of each node pair from a csv file.
-//std::vector<Pos> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv);
-//
-///// \brief A function loading the precomputed travel distance of each node pair from a csv file.
-//std::vector<Pos> LoadTravelDistanceTableFromCsvFile(std::string path_to_csv);
+/// \brief A function loading the precomputed mean travel time of each node pair from a csv file.
+std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv);
 
 
 template <typename T>

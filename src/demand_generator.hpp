@@ -20,7 +20,8 @@ class DemandGenerator {
     /// \brief Main functor that generates the requests til the target system time.
     std::vector<Request> operator()(uint64_t target_system_time_ms);
 
-    const std::vector<Request> &GetAllRequests() const;
+    const std::vector<Request> & GetAllRequests() const;
+
 
   private:
     /// \brief The system time starting from 0.
