@@ -125,11 +125,15 @@ RoutingResponse Router::operator()(const Pos &origin, const Pos &destination, Ro
     return response;
 }
 
+RoutingResponse Router::Routing(const size_t &onid, const size_t &dnid, RoutingType type) {
+    return RoutingResponse();
+}
+
 size_t Router::getVehicleStationId(const size_t &station_index) {
     return vehicle_stations_[station_index].node_id;
 }
 
-size_t Router::getVehicleStationNumber() {
+size_t Router::getNumOfVehicleStations() {
     return vehicle_stations_.size();
 }
 

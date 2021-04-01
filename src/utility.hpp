@@ -26,7 +26,7 @@ std::string ConvertTimeSecondToDate(int32_t time_sec);
 int32_t ComputeTheAccumulatedSecondsFrom0Clock(std::string time_date);
 
 /// \brief The current time of the system, used to calculate the computational time
-std::time_t GetTimeStamp();
+std::time_t getTimeStamp();
 
 /// \brief A function to check whether the data file is existing.
 void CheckFileExistence(const std::string& path_to_file);
@@ -46,7 +46,7 @@ std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string p
 
 template <typename T>
 std::vector<T> ReadObjectVectorFromBinary(const std::string & file_path) {
-    auto s_time = GetTimeStamp();
+    auto s_time = getTimeStamp();
     struct stat buffer;
     if (stat(file_path.c_str(), &buffer) != 0){
         fmt::print("[ERROR] File {} does not exist! \n", file_path);
@@ -68,7 +68,7 @@ std::vector<T> ReadObjectVectorFromBinary(const std::string & file_path) {
     INFILE.close();
 
     fmt::print("[INFO] ({}s) Loaded data from {}, with {} rows.\n",
-               double (GetTimeStamp() - s_time)/1000, file_path, object_vector.size());
+               float (getTimeStamp() - s_time)/1000, file_path, object_vector.size());
     return std::move(object_vector);
 }
 

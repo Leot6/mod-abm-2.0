@@ -11,18 +11,16 @@
 
 DemandGenerator::DemandGenerator(std::string _path_to_taxi_data, std::string _simulation_start_time,
                                  float _request_density) {
-    auto s_time = GetTimeStamp();
     all_requests_ = ReadObjectVectorFromBinary<Request>(_path_to_taxi_data);
 
-
-    s_time = GetTimeStamp();
+    auto s_time = getTimeStamp();
     init_request_time_ms_ = ComputeTheAccumulatedSecondsFrom0Clock(_simulation_start_time) * 1000;
     while (all_requests_[init_request_idx_].request_time_ms < init_request_time_ms_){
         init_request_idx_ += 1;
     }
     request_density_ = _request_density;
-    fmt::print("[INFO] ({}s) Simulation starts at {}, init request idx {}.\n",
-               double (GetTimeStamp() - s_time)/1000, _simulation_start_time, init_request_idx_);
+    fmt::print("[INFO] ({}s) Calculate the initial request index {} ({}).\n",
+               float (getTimeStamp() - s_time)/1000, init_request_idx_, _simulation_start_time);
 }
 
 std::vector<Request> DemandGenerator::operator()(uint64_t target_system_time_ms) {

@@ -20,11 +20,14 @@ class Router {
     /// \brief Main functor that finds the shortest route for an O/D pair on request.
     RoutingResponse operator()(const Pos &origin, const Pos &destination, RoutingType type);
 
+    /// \brief Main functor that finds the shortest route for an O/D pair on request.
+    RoutingResponse Routing(const size_t &onid, const size_t &dnid, RoutingType type);
+
     /// \brief Get the node_id of a station.
     size_t getVehicleStationId(const size_t &station_index);
 
     /// \brief Get the number of vehicle stations.
-    size_t getVehicleStationNumber();
+    size_t getNumOfVehicleStations();
 
     /// \brief Get the pos of a node.
     Pos getNodePos(const size_t &node_id);
