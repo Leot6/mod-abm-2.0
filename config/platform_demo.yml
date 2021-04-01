@@ -4,7 +4,11 @@
 # We use Manhattan as our case study.
 data_file_path:
   osrm: "../osrm/map/manhattan.osrm"
-  vehicle_station: "./datalog/map-data/stations-101.csv"
+  vehicle_stations: "./datalog/map-data/stations-101.bin"
+  network_nodes: "./datalog/map-data/nodes.bin"
+  shortest_path_table: "./datalog/map-data/path-table.csv"
+  mean_travel_time_table: "./datalog/map-data/mean-table.csv"
+  travel_distance_table: "./datalog/map-data/dist-table.csv"
   taxi_data: "./datalog/taxi-data/manhattan-taxi-20160525.bin"
 area_config: 
   lon_min: -74.0300
@@ -15,8 +19,6 @@ mod_system_config:
   fleet_config:
     fleet_size: 5
     veh_capacity: 4
-    initial_lon: -74.009115
-    initial_lat: 40.71692
   request_config:
     request_density: 0.1
     max_pickup_wait_time_s: 600

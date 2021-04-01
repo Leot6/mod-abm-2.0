@@ -21,5 +21,12 @@ x64-Release/
 # clang
 .clang-format
 
+# Clion files
+cmake-build-debug/
+
 # large data file
-.csv
+*.csv
+
+# others
+.idea
+test/

@@ -31,6 +31,16 @@ Router::Router(DataFilePath _date_file_path_config) {
 
     fmt::print("[INFO] Initiated the OSRM routing engine using map data from {}.\n",
                path_to_osrm_data);
+
+    auto &path_to_station_data = _date_file_path_config.path_to_vehicle_stations;
+    auto &path_to_node_data = _date_file_path_config.path_to_network_nodes;
+    auto &path_to_shortest_path_data = _date_file_path_config.path_to_shortest_path_table;
+    auto &path_to_mean_travel_time_data = _date_file_path_config.path_to_mean_travel_time_table;
+    auto &path_to_travel_distance_data = _date_file_path_config.path_to_travel_distance_table;
+    vehicle_stations_ = ReadObjectVectorFromBinary<Pos>(path_to_station_data);
+    network_nodes_ = ReadObjectVectorFromBinary<Pos>(path_to_node_data);
+//    vehicle_stations_ = LoadNetworkNodesFromCsvFile(path_to_station_data);
+//    network_nodes_ = LoadNetworkNodesFromCsvFile(path_to_node_data);
 }
 
 RoutingResponse Router::operator()(const Pos &origin, const Pos &destination, RoutingType type) {
@@ -114,6 +124,19 @@ RoutingResponse Router::operator()(const Pos &origin, const Pos &destination, Ro
 
     return response;
 }
+
+size_t Router::getVehicleStationId(const size_t &station_index) {
+    return vehicle_stations_[station_index].node_id;
+}
+
+size_t Router::getVehicleStationNumber() {
+    return vehicle_stations_.size();
+}
+
+Pos Router::getNodePos(const size_t &node_id) {
+    return network_nodes_[node_id -1];
+}
+
 
 Route convert_json_to_route(osrm::json::Object route_json) {
     Route route;

@@ -10,11 +10,10 @@
 #include <algorithm>
 
 DemandGenerator::DemandGenerator(std::string _path_to_taxi_data, std::string _simulation_start_time,
-                                 double _request_density) {
+                                 float _request_density) {
     auto s_time = GetTimeStamp();
     all_requests_ = ReadObjectVectorFromBinary<Request>(_path_to_taxi_data);
-    fmt::print("[INFO] ({}s) Loaded taxi data from {}, having {} requests.\n",
-               double (GetTimeStamp() - s_time)/1000, _path_to_taxi_data,all_requests_.size());
+
 
     s_time = GetTimeStamp();
     init_request_time_ms_ = ComputeTheAccumulatedSecondsFrom0Clock(_simulation_start_time) * 1000;
@@ -38,10 +37,10 @@ std::vector<Request> DemandGenerator::operator()(uint64_t target_system_time_ms)
     int32_t new_request_idx = init_request_idx_ + (int32_t)(current_request_count_ / request_density_);
     while (all_requests_[new_request_idx].request_time_ms < system_time_ms_ + init_request_time_ms_){
         Request new_request = all_requests_[new_request_idx];
-        fmt::print("[INFO] Generated request index {}({}s): origin({}), dest({}).\n",
+        fmt::print("[INFO] Generated request index {} ({}): origin({}), dest({}).\n",
                    new_request_idx - init_request_idx_,new_request.request_time_date,
-                   new_request.origin.node_id, new_request.destination.node_id);
-        if (new_request.origin.node_id == 0){
+                   new_request.origin_node_id, new_request.destination_node_id);
+        if (new_request.origin_node_id == 0){
             break;
         }
         current_request_count_ += 1;

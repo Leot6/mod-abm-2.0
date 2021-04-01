@@ -29,28 +29,29 @@ int32_t ComputeTheAccumulatedSecondsFrom0Clock(std::string time_date);
 std::time_t GetTimeStamp();
 
 /// \brief A function to check whether the data file is existing.
-int CheckFileExistence(std::string& path_to_file);
+void CheckFileExistence(std::string& path_to_file);
 
 /// \brief A function loading the taxi trip data from a csv file.
 std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv);
 
-/// \brief A function loading the vehicle station data from a csv file.
-std::vector<Pos> LoadStationsFromCsvFile(std::string path_to_csv);
-
 /// \brief A function loading the road network node data from a csv file.
-std::vector<Pos> LoadNodesFromCsvFile(std::string path_to_csv);
+std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv);
 
-///// \brief A function loading the precomputed travel distance of each node pair from a csv file.
-//std::vector<Pos> LoadTravelDistanceTableFromCsvFile(std::string path_to_csv);
-//
+///// \brief A function loading the precomputed minimum mean travel time path of each node pair from a csv file.
+std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(std::string path_to_csv);
+//std::vector<std::vector<int>> LoadShortestPathTableFromCsvFile(
+//        std::string path_to_nodes_csv, std::string path_to_path_table_csv);
+
 ///// \brief A function loading the precomputed mean travel time of each node pair from a csv file.
 //std::vector<Pos> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv);
 //
-///// \brief A function loading the precomputed minimum mean travel time path of each node pair from a csv file.
-//std::vector<Pos> LoadShortestPathTableFromCsvFile(std::string path_to_csv);
+///// \brief A function loading the precomputed travel distance of each node pair from a csv file.
+//std::vector<Pos> LoadTravelDistanceTableFromCsvFile(std::string path_to_csv);
+
 
 template <typename T>
 std::vector<T> ReadObjectVectorFromBinary(const std::string & file_path) {
+    auto s_time = GetTimeStamp();
     struct stat buffer;
     if (stat(file_path.c_str(), &buffer) != 0){
         fmt::print("[ERROR] File {} does not exist! \n", file_path);
@@ -62,15 +63,17 @@ std::vector<T> ReadObjectVectorFromBinary(const std::string & file_path) {
     begin = FILE.tellg();
     FILE.seekg(0,std::ios::end);
     end = FILE.tellg();
-//    std::cout << "size is: " << (end-begin) << " bytes.\n";
     unsigned long size = end - begin;
     FILE.close();
 
     std::ifstream INFILE(file_path, std::ios::in | std::ios::binary);
     std::vector<T> object_vector;
-    object_vector.reserve(size);
+    object_vector.resize(size / sizeof(T));
     INFILE.read(reinterpret_cast<char *>(&object_vector[0]), size*sizeof(T));
     INFILE.close();
+
+    fmt::print("[INFO] ({}s) Loaded data from {}, with {} rows.\n",
+               double (GetTimeStamp() - s_time)/1000, file_path, object_vector.size());
     return std::move(object_vector);
 }
 
@@ -80,7 +83,10 @@ int WriteObjectVectorToBinary(const std::vector<T> & object_vector, const std::s
     FILE.open(file_path, std::ios::out | std::ios::binary);
     if (!object_vector.empty()) {
         FILE.write((char *) object_vector.data(), object_vector.size() * sizeof(T));
+        fmt::print("[INFO] Data ({} rows) has been saved to a binary file: {}\n",
+                   object_vector.size(), file_path);
         return 0;
     }
     return -1;
 }
+

@@ -12,8 +12,16 @@ PlatformConfig load_platform_config(const std::string &path_to_platform_config) 
 
     platform_config.data_file_path.path_to_osrm =
             platform_config_yaml["data_file_path"]["osrm"].as<std::string>();
-    platform_config.data_file_path.path_to_vehicle_station =
-            platform_config_yaml["data_file_path"]["vehicle_station"].as<std::string>();
+    platform_config.data_file_path.path_to_vehicle_stations =
+            platform_config_yaml["data_file_path"]["vehicle_stations"].as<std::string>();
+    platform_config.data_file_path.path_to_network_nodes =
+            platform_config_yaml["data_file_path"]["network_nodes"].as<std::string>();
+    platform_config.data_file_path.path_to_shortest_path_table =
+            platform_config_yaml["data_file_path"]["shortest_path_table"].as<std::string>();
+    platform_config.data_file_path.path_to_mean_travel_time_table =
+            platform_config_yaml["data_file_path"]["mean_travel_time_table"].as<std::string>();
+    platform_config.data_file_path.path_to_travel_distance_table =
+            platform_config_yaml["data_file_path"]["travel_distance_table"].as<std::string>();
     platform_config.data_file_path.path_to_taxi_data =
             platform_config_yaml["data_file_path"]["taxi_data"].as<std::string>();
 
@@ -30,14 +38,10 @@ PlatformConfig load_platform_config(const std::string &path_to_platform_config) 
             platform_config_yaml["mod_system_config"]["fleet_config"]["fleet_size"].as<size_t>();
     platform_config.mod_system_config.fleet_config.veh_capacity =
             platform_config_yaml["mod_system_config"]["fleet_config"]["veh_capacity"].as<size_t>();
-    platform_config.mod_system_config.fleet_config.initial_lon =
-            platform_config_yaml["mod_system_config"]["fleet_config"]["initial_lon"].as<float>();
-    platform_config.mod_system_config.fleet_config.initial_lat =
-            platform_config_yaml["mod_system_config"]["fleet_config"]["initial_lat"].as<float>();
 
     platform_config.mod_system_config.request_config.request_density =
             platform_config_yaml["mod_system_config"]["request_config"]["request_density"]
-                    .as<double>();
+                    .as<float>();
     platform_config.mod_system_config.request_config.max_pickup_wait_time_s =
             platform_config_yaml["mod_system_config"]["request_config"]["max_pickup_wait_time_s"]
                     .as<double>();

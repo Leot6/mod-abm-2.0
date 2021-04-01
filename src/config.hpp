@@ -8,7 +8,11 @@
 /// \brief Config that describes the data file path.
 struct DataFilePath {
     std::string path_to_osrm = "";
-    std::string path_to_vehicle_station = "";
+    std::string path_to_vehicle_stations = "";
+    std::string path_to_network_nodes = "";
+    std::string path_to_shortest_path_table = "";
+    std::string path_to_mean_travel_time_table = "";
+    std::string path_to_travel_distance_table = "";
     std::string path_to_taxi_data = "";
 };
 
@@ -24,13 +28,11 @@ struct AreaConfig {
 struct FleetConfig {
     size_t fleet_size = 10;  // fleet size
     size_t veh_capacity = 2; // vehicle capacity, 1 = non-shared, >2 is shared
-    float initial_lon = 0.0; // initial longitude of the vehicle
-    float initial_lat = 0.0; // initial latitude of the vehicle
 };
 
 /// \brief Config that describes the requests.
 struct RequestConfig {
-    double request_density = 1.0; // the percentage of taxi data considered
+    float request_density = 1.0; // the percentage of taxi data considered
     double max_pickup_wait_time_s = 600; // the max wait time allowed between a request is generated
                                          // and the traveler is picked up
 };

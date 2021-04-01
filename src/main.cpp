@@ -20,6 +20,7 @@ int main(int argc, const char *argv[]) {
     if (argc == 1){
         path_to_config_file = "./config/platform_demo.yml";
     } else if (argc == 2){
+        CheckFileExistence((std::string &) argv[1]);
         path_to_config_file = argv[1];
     } else {
         fmt::print(stderr,
