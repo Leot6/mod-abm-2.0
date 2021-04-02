@@ -25,9 +25,8 @@ x64-Release/
 cmake-build-debug/
 
 # large data file
-*.csv
-*.zip
-*.bin
+datalog-gitignore/
+media-gitignore/
 
 # others
 .idea
