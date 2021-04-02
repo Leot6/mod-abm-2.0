@@ -11,7 +11,7 @@
 
 DemandGenerator::DemandGenerator(std::string _path_to_taxi_data, std::string _simulation_start_time,
                                  float _request_density) {
-    all_requests_ = ReadObjectVectorFromBinary<Request>(_path_to_taxi_data);
+//    all_requests_ = ReadObjectVectorFromBinary<Request>(_path_to_taxi_data);
 
     auto s_time = getTimeStamp();
     init_request_time_ms_ = ComputeTheAccumulatedSecondsFrom0Clock(_simulation_start_time) * 1000;

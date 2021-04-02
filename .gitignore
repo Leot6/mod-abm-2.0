@@ -26,6 +26,8 @@ cmake-build-debug/
 
 # large data file
 *.csv
+*.zip
+*.bin
 
 # others
 .idea

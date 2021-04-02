@@ -16,9 +16,9 @@ int32_t ConvertTimeDateToSeconds(std::string time_date) {
 }
 
 int32_t ComputeTheAccumulatedSecondsFrom0Clock(std::string time_date) {
-    std::string time_0_clock = time_date.substr(0,10) + "00:00:00";
-    int32_t accumulated_sec = ConvertTimeDateToSeconds(time_date) - ConvertTimeDateToSeconds(time_0_clock);
-    return accumulated_sec;
+  std::string time_0_clock = time_date.substr(0,10) + "00:00:00";
+  int32_t accumulated_sec = ConvertTimeDateToSeconds(time_date) - ConvertTimeDateToSeconds(time_0_clock);
+  return accumulated_sec;
 }
 
 std::string ConvertTimeSecondToDate(int32_t time_sec) {
@@ -50,30 +50,24 @@ void CheckFileExistence(const std::string& path_to_file) {
 }
 
 std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv) {
-    CheckFileExistence(path_to_csv);
-    auto s_time = getTimeStamp();
-    std::vector<Request> all_requests = {};
-    std::ifstream taxi_data_csv(path_to_csv); //load the taxi data file
-    std::string line;
-    getline(taxi_data_csv,line);  // ignore the first line
-    while (getline(taxi_data_csv,line)){  // read every line
-        std::istringstream readstr(line); // string every line
-        std::vector<std::string> data_line;
-        std::string info;
-        while (getline(readstr, info, ',')) {
-            data_line.push_back(info);
-        }
-        Request request;
-        request.request_time_ms = ComputeTheAccumulatedSecondsFrom0Clock(data_line[0]) * 1000;
-        strcpy(request.request_time_date, data_line[0].c_str());
-        request.origin_node_id = std::stoi(data_line[2]);
-        request.destination_node_id = std::stoi(data_line[5]);
+  CheckFileExistence(path_to_csv);
+  auto s_time = getTimeStamp();
+  std::vector<Request> all_requests = {};
+  using namespace csv;
+  CSVReader reader(path_to_csv);
 
-        all_requests.push_back(request);
-    }
-    fmt::print("[DEBUG] ({}s) Load request data from {}, with {} requests.\n",
-               float (getTimeStamp() - s_time)/1000, path_to_csv, all_requests.size());
-    return std::move(all_requests);
+
+  for (CSVRow& row: reader) { // Input iterator
+    auto onid = row["onid"].get<size_t>();
+    auto dnid = row["dnid"].get<size_t>();
+    auto request_time = row["ptime"].get();
+    auto request_time_ms = ComputeTheAccumulatedSecondsFrom0Clock(request_time);
+    all_requests.emplace_back(onid,dnid,request_time_ms, request_time);
+  }
+
+  fmt::print("[DEBUG] ({}s) Load request data from {}, with {} requests.\n",
+             float (getTimeStamp() - s_time)/1000, path_to_csv, all_requests.size());
+  return std::move(all_requests);
 }
 
 std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv) {
@@ -131,32 +125,82 @@ std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string pa
     return shortest_path_table;
 }
 
-std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv) {
-    CheckFileExistence(path_to_csv);
-    auto s_time = getTimeStamp();
-    std::vector<std::vector<float>> mean_travel_time_table = {};
-    std::ifstream data_csv(path_to_csv); //load the data file
-    std::string line;
-    getline(data_csv,line);  // ignore the first line
-    while (getline(data_csv,line)){  // read every line
-        std::istringstream readstr(line); // string every line
-        std::vector<std::string> data_line;
-        std::string info;
-        while (getline(readstr, info, ',')) {
-            data_line.push_back(info);
-        }
-        std::vector<float> mean_travel_time_row = {};
-        for (auto i = 1; i < data_line.size(); i++) {
-            mean_travel_time_row.push_back(std::stof(data_line[i]));
-        }
-        mean_travel_time_table.push_back(mean_travel_time_row);
-        if (mean_travel_time_table[0].size() != mean_travel_time_table.back().size()) {
-            fmt::print("[ERROR]!The size is not right.");
-            exit(0);
-        }
+//std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv) {
+//    CheckFileExistence(path_to_csv);
+//    auto s_time = getTimeStamp();
+//    TIMER_START(read_csv);
+//    std::vector<std::vector<float>> mean_travel_time_table = {};
+//    std::ifstream data_csv(path_to_csv); //load the data file
+//    std::string line;
+//    getline(data_csv,line);  // ignore the first line
+//    while (getline(data_csv,line)){  // read every line
+//        std::istringstream readstr(line); // string every line
+//        std::vector<std::string> data_line;
+//        std::string info;
+//        while (getline(readstr, info, ',')) {
+//            data_line.push_back(info);
+//        }
+//        std::vector<float> mean_travel_time_row = {};
+//        for (auto i = 1; i < data_line.size(); i++) {
+//            mean_travel_time_row.push_back(std::stof(data_line[i]));
+//        }
+//        mean_travel_time_table.push_back(mean_travel_time_row);
+//        if (mean_travel_time_table[0].size() != mean_travel_time_table.back().size()) {
+//            fmt::print("[ERROR]!The size is not right.");
+//            exit(0);
+//        }
+//    }
+//    TIMER_END(read_csv);
+//    fmt::print("[DEBUG] ({}s) Loaded shortest path data from {}, with {} * {} node pairs.\n",
+//               float (getTimeStamp() - s_time)/1000, path_to_csv,
+//               mean_travel_time_table.size(), mean_travel_time_table[0].size());
+//    return mean_travel_time_table;
+//}
+
+//std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv){
+//  CheckFileExistence(path_to_csv);
+//
+//  std::vector<std::vector<float>> mean_travel_time_table = {};
+//  rapidcsv::Document csv_file(path_to_csv, rapidcsv::LabelParams(0, 0));
+//  std::cout << "CSV: " << csv_file.GetRowCount() << " x " <<   csv_file.GetColumnCount() << std::endl;
+//  auto colnum = csv_file.GetColumnCount();
+//  auto rownum = csv_file.GetRowCount();
+//  mean_travel_time_table.resize(rownum);
+//  TIMER_START(read_csv);
+//  for(int i = 0; i < rownum; i++){
+////    mean_travel_time_table.resize(csv_file.GetColumnCount());
+//    mean_travel_time_table.at(i) = csv_file.GetRow<float>(i);
+////    std::cout << i << std::endl;
+//  }
+//  TIMER_END(read_csv);
+//
+//
+//  return mean_travel_time_table;
+//}
+
+std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv){
+  CheckFileExistence(path_to_csv);
+
+  std::vector<std::vector<float>> mean_travel_time_table = {};
+  TIMER_START(read_csv);
+  using namespace csv;
+  csv::CSVReader csv_reader(path_to_csv);
+  for (CSVRow& row: csv_reader) { // Input iterator
+    std::vector<float> float_row;
+    float_row.reserve(row.size());
+    long i = 0;
+    for (CSVField& field: row) {
+      if(i==0){
+        i++;
+        continue;
+      }
+      float_row.push_back(field.get<float>());
     }
-    fmt::print("[DEBUG] ({}s) Loaded shortest path data from {}, with {} * {} node pairs.\n",
-               float (getTimeStamp() - s_time)/1000, path_to_csv,
-               mean_travel_time_table.size(), mean_travel_time_table[0].size());
-    return mean_travel_time_table;
+    mean_travel_time_table.push_back(float_row);
+  }
+  std::cout << "Table: " << mean_travel_time_table.size() << " x " << mean_travel_time_table[0].size() << std::endl;
+  TIMER_END(read_csv);
+
+
+  return mean_travel_time_table;
 }

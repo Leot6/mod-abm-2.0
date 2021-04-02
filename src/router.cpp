@@ -37,8 +37,8 @@ Router::Router(DataFilePath _date_file_path_config) {
     auto &path_to_shortest_path_data = _date_file_path_config.path_to_shortest_path_table;
     auto &path_to_mean_travel_time_data = _date_file_path_config.path_to_mean_travel_time_table;
     auto &path_to_travel_distance_data = _date_file_path_config.path_to_travel_distance_table;
-    vehicle_stations_ = ReadObjectVectorFromBinary<Pos>(path_to_station_data);
-    network_nodes_ = ReadObjectVectorFromBinary<Pos>(path_to_node_data);
+//    vehicle_stations_ = ReadObjectVectorFromBinary<Pos>(path_to_station_data);
+//    network_nodes_ = ReadObjectVectorFromBinary<Pos>(path_to_node_data);
 //    vehicle_stations_ = LoadNetworkNodesFromCsvFile(path_to_station_data);
 //    network_nodes_ = LoadNetworkNodesFromCsvFile(path_to_node_data);
 }

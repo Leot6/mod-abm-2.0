@@ -4,6 +4,9 @@
 
 #pragma once
 #include "types.hpp"
+//#include "rapidcsv.h"
+#include "csv.hpp"
+
 #include <sys/stat.h>
 #include <fmt/format.h>
 
@@ -28,6 +31,9 @@ int32_t ComputeTheAccumulatedSecondsFrom0Clock(std::string time_date);
 /// \brief The current time of the system, used to calculate the computational time
 std::time_t getTimeStamp();
 
+#define TIMER_START(FUNC) auto FUNC = getTimeStamp();
+#define TIMER_END(FUNC) std::cout << "[" << #FUNC << "]" << " cost time: " << (static_cast<float>(getTimeStamp() - FUNC)/1000.0f) << "s" << std::endl;
+
 /// \brief A function to check whether the data file is existing.
 void CheckFileExistence(const std::string& path_to_file);
 
@@ -42,46 +48,4 @@ std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string pa
 
 /// \brief A function loading the precomputed mean travel time of each node pair from a csv file.
 std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv);
-
-
-template <typename T>
-std::vector<T> ReadObjectVectorFromBinary(const std::string & file_path) {
-    auto s_time = getTimeStamp();
-    struct stat buffer;
-    if (stat(file_path.c_str(), &buffer) != 0){
-        fmt::print("[ERROR] File {} does not exist! \n", file_path);
-        exit(0);
-    }
-
-    std::ifstream FILE(file_path, std::ios::in | std::ios::binary);
-    std::streampos begin, end;
-    begin = FILE.tellg();
-    FILE.seekg(0,std::ios::end);
-    end = FILE.tellg();
-    unsigned long size = end - begin;
-    FILE.close();
-
-    std::ifstream INFILE(file_path, std::ios::in | std::ios::binary);
-    std::vector<T> object_vector;
-    object_vector.resize(size / sizeof(T));
-    INFILE.read(reinterpret_cast<char *>(&object_vector[0]), size*sizeof(T));
-    INFILE.close();
-
-    fmt::print("[INFO] ({}s) Loaded data from {}, with {} rows.\n",
-               float (getTimeStamp() - s_time)/1000, file_path, object_vector.size());
-    return std::move(object_vector);
-}
-
-template <typename T>
-int WriteObjectVectorToBinary(const std::vector<T> & object_vector, const std::string & file_path) {
-    std::ofstream FILE;
-    FILE.open(file_path, std::ios::out | std::ios::binary);
-    if (!object_vector.empty()) {
-        FILE.write((char *) object_vector.data(), object_vector.size() * sizeof(T));
-        fmt::print("[INFO] Data ({} rows) has been saved to a binary file: {}\n",
-                   object_vector.size(), file_path);
-        return 0;
-    }
-    return -1;
-}
 
