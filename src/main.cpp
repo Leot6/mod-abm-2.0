@@ -35,15 +35,18 @@ int main(int argc, const char *argv[]) {
 
     // Initiate the router with the osrm data.
     Router router{platform_config.data_file_path};
+    fmt::print("[INFO] Router is ready.\n");
 
     // Create the demand generator based on the input demand file.
     DemandGenerator demand_generator{platform_config.data_file_path.path_to_taxi_data,
                                      platform_config.simulation_config.simulation_start_time,
                                      platform_config.mod_system_config.request_config.request_density};
+    fmt::print("[INFO] Demand Generator is ready.\n");
 
     // Create the simulation platform with the config loaded from file.
     Platform<decltype(router), decltype(demand_generator)> platform{
         std::move(platform_config), std::move(router), std::move(demand_generator)};
+    fmt::print("[INFO] Platform is ready.\n");
 
     // Run simulation.
     platform.run_simulation();

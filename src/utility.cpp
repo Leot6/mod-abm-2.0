@@ -34,7 +34,7 @@ std::string ConvertTimeSecondToDate(int32_t time_sec) {
     return converted_time_date;
 }
 
-std::time_t GetTimeStamp() {
+std::time_t getTimeStamp() {
     std::chrono::time_point<std::chrono::system_clock,std::chrono::milliseconds> tp =
             std::chrono::time_point_cast<std::chrono::milliseconds>(std::chrono::system_clock::now());
     std::time_t timestamp = tp.time_since_epoch().count();
@@ -51,7 +51,7 @@ void CheckFileExistence(const std::string& path_to_file) {
 
 std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv) {
     CheckFileExistence(path_to_csv);
-    auto s_time = GetTimeStamp();
+    auto s_time = getTimeStamp();
     std::vector<Request> all_requests = {};
     std::ifstream taxi_data_csv(path_to_csv); //load the taxi data file
     std::string line;
@@ -72,13 +72,13 @@ std::vector<Request> LoadRequestsFromCsvFile(std::string path_to_csv) {
         all_requests.push_back(request);
     }
     fmt::print("[DEBUG] ({}s) Load request data from {}, with {} requests.\n",
-               double (GetTimeStamp() - s_time)/1000, path_to_csv, all_requests.size());
+               float (getTimeStamp() - s_time)/1000, path_to_csv, all_requests.size());
     return std::move(all_requests);
 }
 
 std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv) {
     CheckFileExistence(path_to_csv);
-    auto s_time = GetTimeStamp();
+    auto s_time = getTimeStamp();
     std::vector<Pos> all_nodes = {};
     std::ifstream data_csv(path_to_csv); //load the data file
     std::string line;
@@ -97,13 +97,13 @@ std::vector<Pos> LoadNetworkNodesFromCsvFile(std::string path_to_csv) {
         all_nodes.push_back(node);
     }
     fmt::print("[DEBUG] ({}s) Loaded node data from {}, with {} nodes.\n",
-               double (GetTimeStamp() - s_time)/1000, path_to_csv, all_nodes.size());
+               float (getTimeStamp() - s_time)/1000, path_to_csv, all_nodes.size());
     return std::move(all_nodes);
 }
 
 std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string path_to_csv) {
     CheckFileExistence(path_to_csv);
-    auto s_time = GetTimeStamp();
+    auto s_time = getTimeStamp();
     std::vector<std::vector<size_t>> shortest_path_table = {};
     std::ifstream data_csv(path_to_csv); //load the data file
     std::string line;
@@ -126,14 +126,14 @@ std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string pa
         }
     }
     fmt::print("[DEBUG] ({}s) Loaded shortest path data from {}, with {} * {} node pairs.\n",
-               double (GetTimeStamp() - s_time)/1000, path_to_csv,
+               float (getTimeStamp() - s_time)/1000, path_to_csv,
                shortest_path_table.size(), shortest_path_table[0].size());
     return shortest_path_table;
 }
 
 std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv) {
     CheckFileExistence(path_to_csv);
-    auto s_time = GetTimeStamp();
+    auto s_time = getTimeStamp();
     std::vector<std::vector<float>> mean_travel_time_table = {};
     std::ifstream data_csv(path_to_csv); //load the data file
     std::string line;
@@ -156,7 +156,7 @@ std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string p
         }
     }
     fmt::print("[DEBUG] ({}s) Loaded shortest path data from {}, with {} * {} node pairs.\n",
-               double (GetTimeStamp() - s_time)/1000, path_to_csv,
+               float (getTimeStamp() - s_time)/1000, path_to_csv,
                mean_travel_time_table.size(), mean_travel_time_table[0].size());
     return mean_travel_time_table;
 }

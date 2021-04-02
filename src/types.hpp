@@ -73,7 +73,7 @@ struct Request {
     size_t destination_node_id;
     uint64_t request_time_ms = 0;
 //    std::string request_time_data = "0000-00-00 00:00:00";
-    char request_time_date[20];
+    char request_time_date[20];  // we use char here to avoid a bug in binary file storing process
 };
 
 /// \brief The status of the order.
@@ -111,7 +111,7 @@ struct Order {
     Pos destination;
     OrderStatus status = OrderStatus::UNDEFINED;
     int32_t request_time_ms = 0;
-    char request_time_date[20];
+    std::string request_time_date;
     int32_t max_pickup_time_ms = 0;
     int32_t pickup_time_ms = 0;
     int32_t dropoff_time_ms = 0;
