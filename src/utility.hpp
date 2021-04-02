@@ -48,4 +48,3 @@ std::vector<std::vector<size_t>> LoadShortestPathTableFromCsvFile(std::string pa
 
 /// \brief A function loading the precomputed mean travel time of each node pair from a csv file.
 std::vector<std::vector<float>> LoadMeanTravelTimeTableFromCsvFile(std::string path_to_csv);
-
