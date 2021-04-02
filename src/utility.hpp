@@ -64,6 +64,7 @@ std::vector<T> ReadObjectVectorFromBinary(const std::string & file_path) {
     std::ifstream INFILE(file_path, std::ios::in | std::ios::binary);
     std::vector<T> object_vector;
     object_vector.resize(size / sizeof(T));
+//    std::cout << sizeof(T) << std::endl;
     INFILE.read(reinterpret_cast<char *>(&object_vector[0]), size*sizeof(T));
     INFILE.close();
 

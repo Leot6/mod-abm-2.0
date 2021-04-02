@@ -63,7 +63,7 @@ int main(int argc, const char *argv[]) {
 //    PreprocessNodeDate("../datalog/map-data/stations-101");
 //    PreprocessNodeDate("../datalog/map-data/nodes");
 //    PreprocessShortestPathDate("../datalog/map-data/path-table");
-    PreprocessMeanTravelTimeDate("../datalog/map-data/mean-table");
+//    PreprocessMeanTravelTimeDate("../datalog/map-data/mean-table");
 //    PreprocessMeanTravelTimeDate("../datalog/map-data/dist-table");
 
 //    std::string a = "test";
